@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -21,6 +22,7 @@ func CreateDatabase() (*sql.DB, error) {
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&multiStatements=true", user, password, serverName, dbName)
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
+		log.Panic("Database conncetion failed!", err)
 		return nil, err
 	}
 

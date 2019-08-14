@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"petStore/db"
+	"PetStore/db"
 
-	"petStore/app"
+	"PetStore/app"
 
 	"github.com/gorilla/mux"
 )

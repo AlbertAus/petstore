@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -21,38 +22,66 @@ func (app *App) SetupRouter() {
 
 	app.Router.
 		Methods("POST").
-		Path("/pet").
+		Path("/{table}").
 		HandlerFunc(app.postFunction)
 
 	app.Router.
 		Methods("PUT").
-		Path("/pet").
+		Path("/{table}").
 		HandlerFunc(app.putFunction)
 
 	app.Router.
 		Methods("GET").
-		Path("/pet/findByStatus/{status}").
+		Path("/{table}/findByStatus/{status}").
 		HandlerFunc(app.getStatusFunction)
 
 	app.Router.
 		Methods("GET").
-		Path("/pet/{id}").
-		HandlerFunc(app.getFunction)
+		Path("/{table}/{id}").
+		HandlerFunc(app.createHandlerFunc())
 
 	app.Router.
 		Methods("POST").
-		Path("/pet/{id}").
+		Path("/{table}/{id}").
 		HandlerFunc(app.postUpdateFunction)
 
 	app.Router.
 		Methods("DELETE").
-		Path("/pet/{id}").
+		Path("/{table}/{id}").
 		HandlerFunc(app.deleteFunction)
 
 	app.Router.
 		Methods("POST").
-		Path("/pet/{id}/uploadImage").
+		Path("/{table}/{id}/uploadImage").
 		HandlerFunc(app.uploadImageFunction)
+}
+
+/**
+*	createHandlerFunc use for calling different handlers by the Path's Parameters.
+ */
+func (app *App) createHandlerFunc() func(w http.ResponseWriter, r *http.Request) {
+	// var w http.ResponseWriter
+	// var r *http.Request
+	// vars := mux.Vars(r)
+	// id, ok := vars["id"]
+	// table, ok := vars["table"]
+
+	// if !ok {
+	// 	log.Panic("No ID in the path", ok)
+	// }
+
+	// log.Println("Table is:", table)
+	// log.Println("id is:", id)
+	return app.getFunction
+
+	// switch table {
+	// case "pet":
+	// 	return app.getFunction
+	// case "store":
+	// 	return nil //app.getFunction
+	// default:
+	// 	return app.getFunction
+	// }
 }
 
 /**
@@ -94,17 +123,59 @@ func (app *App) getStatusFunction(w http.ResponseWriter, r *http.Request) {
 	// Query all pets having status, append all pet to pets []Pet array;
 	pet := &Pet{}
 	var pets []Pet
+
+	// Use the tmpPhotoUrls string to store the &pet.PhotoUrls string templetely, then Decode to []photourl format.
+	var tmpPhotoUrls string
+
+	// Use the tmpTags string to store the &pet.Tags string templetely, then Decode to []tag format.
+	var tmpTags string
+
 	// Using for counting how many records fetched
 	count := 0
-	rows, err := app.Database.Query("SELECT * FROM `pet` WHERE status = ?", status)
-	for rows.Next() {
-		err := rows.Scan(&pet.ID, &pet.Category, &pet.Name, &pet.PhotoUrls, &pet.tags, &pet.Status)
-		if err != nil {
-			log.Fatal("Database SELECT failed", err)
-		}
+	rows, err := app.Database.Query("SELECT id, json_extract(category, '$.id') AS Category_ID, json_extract(category, '$.name') AS Category_Name, name, photoUrls, tags, status FROM `pet` WHERE status = ?", status)
 
-		pets = append(pets, *pet)
-		count++
+	// Loop the records, do all Types convertion, append the result to pets if no error
+	for rows.Next() {
+		// Switch the err and print the outcomes.
+		switch err := rows.Scan(&pet.ID, &pet.Category.ID, &pet.Category.Name, &pet.Name, &tmpPhotoUrls, &tmpTags, &pet.Status); err {
+		case sql.ErrNoRows:
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, "Welcome to PetStore!\n")
+			if err := json.NewEncoder(w).Encode("No rows were returned!"); err != nil {
+				panic(err)
+			}
+			fmt.Fprintf(w, "No rows were returned!\n")
+		case nil:
+			// Testing tmpPhotoUrls and tmpTags values getting from the database
+			fmt.Println("tmpPhotoUrls from DB is: %s", tmpPhotoUrls)
+			fmt.Println("tmpTags from DB is: %s", tmpTags)
+
+			// Defining the photoUrlsJSON for Decode the string to []photourl
+			var photoUrlsJSON []photourl
+			decodeTmpPhotoUrls := json.NewDecoder(strings.NewReader(tmpPhotoUrls))
+			errPhotoUrlsJSON := decodeTmpPhotoUrls.Decode(&photoUrlsJSON)
+
+			// Testing Decoded values of photoUrlsJSON
+			fmt.Println("After Decode tmpPhotoUrls err is %s, array is %s", errPhotoUrlsJSON, photoUrlsJSON)
+
+			// Defining the tagsJSON for Decode the string to []photourl
+			var tagsJSON []tags
+			decodeTmpTags := json.NewDecoder(strings.NewReader(tmpTags))
+			errTagsJSON := decodeTmpTags.Decode(&tagsJSON)
+
+			// Testing Decoded values of tagsJSON
+			fmt.Println("After Decode tmpTags err is %s, array is %s", errTagsJSON, tagsJSON)
+
+			if err != nil {
+				log.Fatal("Database SELECT failed", err)
+			}
+
+			// Append *pet to pets for the final output
+			pets = append(pets, *pet)
+			count++
+		default:
+			log.Panic("Database SELECT failed: ", err)
+		}
 	}
 	if err != nil {
 		log.Fatal("Database SELECT failed", err)
@@ -125,32 +196,81 @@ func (app *App) getStatusFunction(w http.ResponseWriter, r *http.Request) {
 func (app *App) getFunction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
+	table, ok := vars["table"]
 	if !ok {
 		log.Fatal("No ID in the path")
 	}
 
+	log.Println("Table is:", table)
 	log.Println("id is:", id)
 
+	// Query all pets having status, append all pet to pets []Pet array;
 	pet := &Pet{}
-	sqlStatement := `select * from pet where id =?;`
-	log.Println("sqlStatement is:", sqlStatement)
-	row := app.Database.QueryRow(sqlStatement, id)
-	switch err := row.Scan(&pet.ID, &pet.Category, &pet.Name, &pet.PhotoUrls, &pet.tags, &pet.Status); err {
-	case sql.ErrNoRows:
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Welcome to my website!\n")
-		if err := json.NewEncoder(w).Encode("No rows were returned!"); err != nil {
-			panic(err)
+	var pets []Pet
+
+	// Use the tmpPhotoUrls string to store the &pet.PhotoUrls string templetely, then Decode to []photourl format.
+	var tmpPhotoUrls string
+
+	// Use the tmpTags string to store the &pet.Tags string templetely, then Decode to []tag format.
+	var tmpTags string
+
+	// Using for counting how many records fetched
+	count := 0
+	rows, err := app.Database.Query("SELECT id, json_extract(category, '$.id') AS Category_ID, json_extract(category, '$.name') AS Category_Name, name, photoUrls, tags, status FROM `pet` WHERE id = ?", id)
+
+	// Loop the records, do all Types convertion, append the result to pets if no error
+	for rows.Next() {
+		// Switch the err and print the outcomes.
+		switch err := rows.Scan(&pet.ID, &pet.Category.ID, &pet.Category.Name, &pet.Name, &tmpPhotoUrls, &tmpTags, &pet.Status); err {
+		case sql.ErrNoRows:
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, "Welcome to PetStore!\n")
+			if err := json.NewEncoder(w).Encode("No rows were returned!"); err != nil {
+				panic(err)
+			}
+			fmt.Fprintf(w, "No rows were returned!\n")
+		case nil:
+			// Testing tmpPhotoUrls and tmpTags values getting from the database
+			fmt.Println("tmpPhotoUrls from DB is: %s", tmpPhotoUrls)
+			fmt.Println("tmpTags from DB is: %s", tmpTags)
+
+			// Defining the photoUrlsJSON for Decode the string to []photourl
+			var photoUrlsJSON []photourl
+			decodeTmpPhotoUrls := json.NewDecoder(strings.NewReader(tmpPhotoUrls))
+			errPhotoUrlsJSON := decodeTmpPhotoUrls.Decode(&photoUrlsJSON)
+
+			// Testing Decoded values of photoUrlsJSON
+			fmt.Println("After Decode tmpPhotoUrls err is %s, array is %s", errPhotoUrlsJSON, photoUrlsJSON)
+
+			// Defining the tagsJSON for Decode the string to []photourl
+			var tagsJSON []tags
+			decodeTmpTags := json.NewDecoder(strings.NewReader(tmpTags))
+			errTagsJSON := decodeTmpTags.Decode(&tagsJSON)
+
+			// Testing Decoded values of tagsJSON
+			fmt.Println("After Decode tmpTags err is %s, array is %s", errTagsJSON, tagsJSON)
+
+			if err != nil {
+				log.Fatal("Database SELECT failed", err)
+			}
+
+			// Append *pet to pets for the final output
+			pets = append(pets, *pet)
+			count++
+		default:
+			log.Panic("Database SELECT failed: ", err)
 		}
-		fmt.Fprintf(w, "No rows were returned!\n")
-	case nil:
-		log.Println("You fetched a pet!", &pet.ID, &pet.Category, &pet.Name, &pet.Status)
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(pet); err != nil {
-			panic(err)
-		}
-	default:
-		log.Panic("Database SELECT failed: ", err)
+	}
+	if err != nil {
+		log.Fatal("Database SELECT failed", err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "There are %v records fetched!\n", count)
+	log.Println("You fetched pets by id!")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(pets); err != nil {
+		panic(err)
 	}
 }
 
