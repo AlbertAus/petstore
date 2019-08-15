@@ -1,4 +1,4 @@
-package app
+package models
 
 /*StructToString to convert struct to string*/
 type StructToString struct{}
@@ -6,10 +6,10 @@ type StructToString struct{}
 /*Pet defined the pet's varialbes ...*/
 type Pet struct {
 	ID        int64      `json:"id"`
-	Category  category   `json:"category"`
+	Category  Category   `json:"category"`
 	Name      string     `json:"name"`
-	PhotoUrls []photourl `json:"photoUrls"`
-	Tags      []tags     `json:"tags"`
+	PhotoUrls []Photourl `json:"photoUrls"`
+	Tags      []Tags     `json:"tags"`
 	Status    Status     `json:"status"`
 }
 
@@ -22,18 +22,14 @@ const (
 	sold      Status = "sold"
 )
 
-/**
-*	Define the Category struct
- */
-type category struct {
+/*Category Define the Category struct*/
+type Category struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-/**
-*	Define the photourl for photoUrls and tags
- */
-type photourl struct {
+/*Photourl Define the photourl for photoUrls and tags*/
+type Photourl struct {
 	// XMLName xml.Name `xml:"photourl"`
 	Name    string `json:"name"`
 	Wrapped bool   `json:"wrapped"`
@@ -46,7 +42,7 @@ type Tag struct {
 }
 
 /*Tags use for all tags ...*/
-type tags struct {
+type Tags struct {
 	// XMLName xml.Name `xml:"tags"`
 	Name    int64 `json:"name"`
 	Wrapped bool  `json:"wrapped"`

@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"PetStore/db"
+	db "PetStore/database"
 
 	"PetStore/app"
 
