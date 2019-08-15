@@ -71,7 +71,7 @@ func (app *App) SetupRouter() {
 }
 
 /**
-*	createHandlerFunc use for calling different handlers by the Path's Parameters.
+*	createHandlerFunc use for calling different handlers by the Path's Parameters
  */
 func (app *App) twoParamsGetHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
