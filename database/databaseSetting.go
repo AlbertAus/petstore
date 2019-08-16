@@ -8,6 +8,12 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// // DB struct with Database *sql.DB
+// type DB struct {
+// 	Database *sql.DB
+// }
+
+// CreateDatabase is the Database initial settings
 func CreateDatabase() (*sql.DB, error) {
 	// serverName := "localhost:3306"
 	// user := "albert"

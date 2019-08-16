@@ -4,8 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	db "PetStore/database"
-
 	"PetStore/app"
 
 	"github.com/gorilla/mux"
@@ -13,14 +11,14 @@ import (
 
 /*APP enter point*/
 func main() {
-	database, err := db.CreateDatabase()
-	if err != nil {
-		log.Fatal("Database connection failed: %s", err.Error())
-	}
+	// database, err := db.CreateDatabase()
+	// if err != nil {
+	// 	log.Fatal("Database connection failed: %s", err.Error())
+	// }
 
 	app := &app.App{
-		Router:   mux.NewRouter().StrictSlash(true),
-		Database: database,
+		Router: mux.NewRouter().StrictSlash(true),
+		// Database: database,
 	}
 
 	app.SetupRouter()

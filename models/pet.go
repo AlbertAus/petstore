@@ -5,12 +5,12 @@ type StructToString struct{}
 
 /*Pet defined the pet's varialbes ...*/
 type Pet struct {
-	ID        int64      `json:"id"`
-	Category  Category   `json:"category"`
-	Name      string     `json:"name"`
-	PhotoUrls []Photourl `json:"photoUrls"`
-	Tags      []Tags     `json:"tags"`
-	Status    Status     `json:"status"`
+	ID        int64    `json:"id"`
+	Category  Category `json:"category"`
+	Name      string   `json:"name"`
+	PhotoUrls []string `json:"photoUrls"`
+	Tags      []Tag    `json:"tags"`
+	Status    Status   `json:"status"`
 }
 
 /*Status use for Enum status variable ...*/
@@ -28,12 +28,12 @@ type Category struct {
 	Name string `json:"name"`
 }
 
-/*Photourl Define the photourl for photoUrls and tags*/
-type Photourl struct {
-	// XMLName xml.Name `xml:"photourl"`
-	Name    string `json:"name"`
-	Wrapped bool   `json:"wrapped"`
-}
+// /*Photourl Define the photourl for photoUrls and tags*/
+// type Photourl struct {
+// 	// XMLName xml.Name `xml:"photourl"`
+// 	Name string `json:"name"`
+// 	// Wrapped bool   `json:"wrapped"`
+// }
 
 /*Tag use for tags ...*/
 type Tag struct {
@@ -41,9 +41,9 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
-/*Tags use for all tags ...*/
-type Tags struct {
-	// XMLName xml.Name `xml:"tags"`
-	Name    int64 `json:"name"`
-	Wrapped bool  `json:"wrapped"`
-}
+// /*Tags use for all tags ...*/
+// type Tags struct {
+// 	// XMLName xml.Name `xml:"tags"`
+// 	Name int64 `json:"name"`
+// 	// Wrapped bool  `json:"wrapped"`
+// }
