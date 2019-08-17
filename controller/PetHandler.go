@@ -171,9 +171,6 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// id := r.FormValue("id")
-		// name := r.FormValue("name")
-
 		insForm, insPrepareErr := DB.Prepare("INSERT INTO `pet` ( id, category, name, photoUrls, tags, status ) VALUES (?,?,?,?,?,?)")
 		if insPrepareErr != nil {
 			// log.Panic("Database INSERT failed")
@@ -187,7 +184,7 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid input", 405)
 			return
 		}
-		log.Println("You added a new pet, id is: " + string(id) + " | name is: " + name)
+		fmt.Printf("You inserted a pet, id is: %v, name is: %s \n", id, name)
 	}
 	w.WriteHeader(http.StatusOK)
 	if jsonErr := json.NewEncoder(w).Encode(pet); jsonErr != nil {
@@ -196,49 +193,140 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/*PutFunction handling the Put method to update the record to the database. */
-func PutFunction(w http.ResponseWriter, r *http.Request) {
+/*PetPutFunction handling the Put method to update the record to the database. */
+func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 	// Setup DB to create Database connection and defer to Close() the DB connection
-	DB, err := db.CreateDatabase()
-	if err != nil {
+	DB, DBerr := db.CreateDatabase()
+	if DBerr != nil {
 		log.Panic("Database connection error!")
 	}
 	defer DB.Close()
 
-	if r.Method == "PUT" {
-		id := r.FormValue("id")
-		name := r.FormValue("name")
+	var pet Pet
 
-		insForm, err := DB.Prepare("UPDATE `pet` SET (id, name) VALUES (?,?)")
-		if err != nil {
-			log.Panic("Database INSERT failed")
+	if r.Method == "PUT" {
+		// Testing request POST body
+		if r.Body == nil {
+			http.Error(w, "Validation exception", 405)
+			return
 		}
 
-		insForm.Exec(id, name)
-		log.Println("You updated a new pet, id is: " + id + " | name is: " + name)
+		inputErr := json.NewDecoder(r.Body).Decode(&pet)
+		if inputErr != nil {
+			http.Error(w, "Validation exception", 405)
+			return
+		}
+		fmt.Printf("PUT going to update pet is: %v\n", pet)
+		id := pet.ID
+		name := pet.Name
+		category, categoryErr := json.Marshal(pet.Category)
+		if categoryErr != nil {
+			fmt.Println("Converting pet.Category failed.", categoryErr)
+			http.Error(w, "Validation exception", 405)
+			return
+		}
+		photourls, urlsErr := json.Marshal(pet.PhotoUrls)
+		if urlsErr != nil {
+			fmt.Println("Converting pet.Category failed.", urlsErr)
+			http.Error(w, "Validation exception", 405)
+			return
+		}
+		tags, tagsErr := json.Marshal(pet.Tags)
+		if tagsErr != nil {
+			fmt.Println("Converting pet.Category failed.", tagsErr)
+			http.Error(w, "Validation exception", 405)
+			return
+		}
+		status := pet.Status
+
+		fmt.Println(pet.Status.IsValid())
+		// Checking the input status ISValid
+		if !pet.Status.IsValid() {
+			http.Error(w, "Validation exception", 405)
+			return
+		}
+
+		// Check the input Pet id's pet is Exists or not.
+		var exists bool
+		row := DB.QueryRow("SELECT EXISTS(SELECT * FROM `pet` WHERE id = ?)", id)
+		if existsErr := row.Scan(&exists); existsErr != nil {
+			fmt.Println(existsErr)
+		}
+		if exists {
+			fmt.Println("Exists!")
+			updateSQL, updateSQLPrepareErr := DB.Prepare("UPDATE `pet` SET id = ?, category = ?, name = ?, photoUrls = ?, tags = ?, status = ? WHERE id = ?")
+			if updateSQLPrepareErr != nil {
+				fmt.Println("Database INSERT failed", updateSQLPrepareErr)
+				http.Error(w, "Validation exception", 405)
+				return
+			}
+
+			updateRes, updateSQLErr := updateSQL.Exec(id, category, name, photourls, tags, status, id)
+			if updateSQLErr != nil {
+				fmt.Println("Insert into Pet failed.\n", updateSQLErr)
+				http.Error(w, "Validation exception", 405)
+				return
+			}
+
+			// Count Affected Rows, if countUpdated == 0, means Pet not found.
+			countUpdated, err2 := updateRes.RowsAffected()
+
+			if err2 != nil {
+				fmt.Println(err2.Error())
+			} else {
+				fmt.Printf("%v record have been updated!", countUpdated)
+				if countUpdated == 0 {
+					http.Error(w, "Validation exception", 405)
+					return
+				}
+			}
+
+			fmt.Printf("You updated a pet, id is: %v, name is: %s \n", id, name)
+		} else if !exists {
+			fmt.Println("not exists!")
+			http.Error(w, "Invalid ID supplied", 400)
+			return
+		}
 	}
 	w.WriteHeader(http.StatusOK)
+	if jsonErr := json.NewEncoder(w).Encode(pet); jsonErr != nil {
+		panic(jsonErr)
+	}
 
 }
 
 /*PetGetStatusFunction handling the get findByStatus method to query record by Status and pass the JSON data to front end. */
 func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	param3, ok := vars["param3"]
-	if !ok {
-		log.Panic("No status in the path")
-	}
-	fmt.Println("param3 is: " + param3)
-	// var checkParam3 models.Status
-	checkParam3 := models.Status(param3)
-
-	// Checking the input status ISValid
-	if !checkParam3.IsValid() {
-		fmt.Println(checkParam3)
+	// vars := mux.Vars(r)
+	// param3, ok := vars["param3"]
+	param3, ok := r.URL.Query()["status"]
+	if !ok || len(param3[0]) < 1 {
+		// log.Panic("No status in the path")
 		http.Error(w, "Invalid status value", 405)
 		return
 	}
 
+	var checkParam3 models.Status
+	//status for SQL Query use.
+	var statusQry string
+	for i := 0; i < len(param3); i++ {
+		// var checkParam3 models.Status
+		checkParam3 = models.Status(param3[i])
+
+		// Add the param3[i] to statusQry string for SQL statement
+		statusQry = statusQry + "," + "'" + param3[i] + "'"
+
+		// Checking the input status ISValid
+		if !checkParam3.IsValid() {
+			fmt.Println(checkParam3)
+			http.Error(w, "Invalid status value", 405)
+			return
+		}
+	}
+
+	// Remove the first "," in statusQry
+	statusQry = statusQry[1:]
+	fmt.Println("statusQry string is:" + statusQry)
 	// // Query all pets having status, append all pet to pets []Pet array;
 	// Clear the pets array
 	var pet Pet
@@ -261,7 +349,7 @@ func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer DB.Close()
 
-	rows, err := DB.Query("SELECT id, json_extract(category, '$.id') AS Category_ID, json_extract(category, '$.name') AS Category_Name, name, photoUrls, tags, status FROM `pet` WHERE status IN (?)", param3)
+	rows, err := DB.Query("SELECT id, json_extract(category, '$.id') AS Category_ID, json_extract(category, '$.name') AS Category_Name, name, photoUrls, tags, status FROM `pet` WHERE status IN (" + statusQry + ")")
 
 	// Loop the records, do all Types convertion, append the result to pets if no error
 	for rows.Next() {

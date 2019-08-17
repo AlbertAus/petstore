@@ -39,7 +39,7 @@ func (app *App) SetupRouter() {
 	app.Router.
 		Methods("PUT").
 		Path("/{param1}").
-		HandlerFunc(Handler.PutFunction)
+		HandlerFunc(app.oneParamsHandlerFunc)
 
 	app.Router.
 		Methods("POST").
@@ -61,34 +61,41 @@ func (app *App) SetupRouter() {
 *	oneParamsHandlerFunc use for calling different handlers by the Paths with one Parameters.
  */
 func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
 	param1, ok1 := vars["param1"]
-	// param2, ok2 := vars["param2"]
 
 	if !ok1 {
 		log.Panic("No Pet in the path", ok1)
 	}
 
-	// if !ok2 {
-	// 	log.Panic("No ID in the path", ok2)
-	// }
-
 	fmt.Println("param1 is:", param1)
-	// fmt.Println("param2 is:", param2)
-	// return app.getFunction
 	if r.Method == "POST" {
 		switch param1 {
 		case "pet":
-			fmt.Println("Calling Pet handler function")
+			fmt.Println("Calling Pet POST handler function")
 			// app.petGetFunction(w, r)
 			Handler.PetPostFunction(w, r)
 			// Call PetHandler function
 			// controller.PetGetFunction(w, r)
 		case "store":
-			fmt.Println("Calling store handler function")
+			fmt.Println("Calling store POST handler function")
 		case "user":
-			fmt.Println("Calling user handler function")
+			fmt.Println("Calling user POST handler function")
+		default:
+			fmt.Println("Wrong URL!")
+		}
+	} else if r.Method == "PUT" {
+		switch param1 {
+		case "pet":
+			fmt.Println("Calling Pet PUT handler function")
+			// app.petGetFunction(w, r)
+			Handler.PetPutFunction(w, r)
+			// Call PetHandler function
+			// controller.PetGetFunction(w, r)
+		case "store":
+			fmt.Println("Calling store PUT handler function")
+		case "user":
+			fmt.Println("Calling user PUT handler function")
 		default:
 			fmt.Println("Wrong URL!")
 		}
@@ -118,9 +125,14 @@ func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	switch param1 {
 	case "pet":
-		fmt.Println("Calling Pet handler function")
-		// app.petGetFunction(w, r)
-		Handler.PetGetFunction(w, r)
+		if param2 == "findByStatus" {
+			fmt.Println("Calling Pet findByStatus handler function")
+			Handler.PetGetStatusFunction(w, r)
+		} else {
+			fmt.Println("Calling PetGetFunction handler function")
+			// app.petGetFunction(w, r)
+			Handler.PetGetFunction(w, r)
+		}
 		// Call PetHandler function
 		// controller.PetGetFunction(w, r)
 	case "store":
