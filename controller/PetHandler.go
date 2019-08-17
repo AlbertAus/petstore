@@ -24,25 +24,14 @@ type Pet models.Pet
 func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 	log.Println("********* Entering the controller PetGetFunction(w,r) *********")
 	vars := mux.Vars(r)
-	// param1, ok1 := vars["param1"]
 	param2, ok2 := vars["param2"]
-	// if !ok1 {
-	// 	log.Panic("No pet in the path")
-	// }
 	if !ok2 {
-		log.Panic("No ID in the path")
 		http.Error(w, "Invalid ID supplied", 400)
 		return
 	}
-	// log.Println("param1 is:", param1)
+
 	log.Println("param2 is:", param2)
 
-	// // Query all pets having status, append all pet to pets []Pet array;
-	// pet := &models.Pet{}
-	// var pets []models.Pet
-	// Clear the pets array
-
-	// pets = nil
 	var pet Pet
 
 	// Use the tmpPhotoUrls string to store the &pet.PhotoUrls string templetely, then Decode to []photourl format.
@@ -95,12 +84,12 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("After Decode tmpTags err is %v\n, array is %v\n", errTagsJSON, tagsJSON)
 
 			if err != nil {
-				log.Panic("Database SELECT failed", err)
+				// log.Panic("Database SELECT failed", err)
 				http.Error(w, "Pet not found", 404)
 				return
 			}
 
-			// // Append *pet to pets for the final output
+			// Append *pet to pets for the final output, this is only for multipul records.
 			// pets = append(pets, pet)
 			count++
 		default:
@@ -108,7 +97,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		log.Panic("Database SELECT failed", err)
+		// log.Panic("Database SELECT failed", err)
 		http.Error(w, "Pet not found", 404)
 		return
 	}
@@ -132,8 +121,8 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 /*PetPostFunction handling the Post method to add new record to the database. */
 func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 	// Setup DB to create Database connection and defer to Close() the DB connection
-	DB, err := db.CreateDatabase()
-	if err != nil {
+	DB, DBerr := db.CreateDatabase()
+	if DBerr != nil {
 		log.Panic("Database connection error!")
 	}
 	defer DB.Close()
@@ -147,8 +136,8 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err := json.NewDecoder(r.Body).Decode(&pet)
-		if err != nil {
+		inputErr := json.NewDecoder(r.Body).Decode(&pet)
+		if inputErr != nil {
 			http.Error(w, "Invalid input", 405)
 			return
 		}
@@ -157,46 +146,54 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 		name := pet.Name
 		category, categoryErr := json.Marshal(pet.Category)
 		if categoryErr != nil {
-			log.Panic("Converting pet.Category failed.", categoryErr)
+			// log.Panic("Converting pet.Category failed.", categoryErr)
 			http.Error(w, "Invalid input", 405)
 			return
 		}
 		photourls, urlsErr := json.Marshal(pet.PhotoUrls)
 		if urlsErr != nil {
-			log.Panic("Converting pet.Category failed.", urlsErr)
+			// log.Panic("Converting pet.Category failed.", urlsErr)
 			http.Error(w, "Invalid input", 405)
 			return
 		}
 		tags, tagsErr := json.Marshal(pet.Tags)
 		if tagsErr != nil {
-			log.Panic("Converting pet.Category failed.", tagsErr)
+			// log.Panic("Converting pet.Category failed.", tagsErr)
 			http.Error(w, "Invalid input", 405)
 			return
 		}
 		status := pet.Status
 
+		// fmt.Println(pet.Status.IsValid())
+		// Checking the input status ISValid
+		if !pet.Status.IsValid() {
+			http.Error(w, "invalid input", 405)
+			return
+		}
+
 		// id := r.FormValue("id")
 		// name := r.FormValue("name")
 
-		insForm, err := DB.Prepare("INSERT INTO `pet` ( id, category, name, photoUrls, tags, status ) VALUES (?,?,?,?,?,?)")
-		if err != nil {
-			log.Panic("Database INSERT failed")
+		insForm, insPrepareErr := DB.Prepare("INSERT INTO `pet` ( id, category, name, photoUrls, tags, status ) VALUES (?,?,?,?,?,?)")
+		if insPrepareErr != nil {
+			// log.Panic("Database INSERT failed")
 			http.Error(w, "Invalid input", 405)
 			return
 		}
 
 		_, insErr := insForm.Exec(id, category, name, photourls, tags, status)
 		if insErr != nil {
-			log.Panic("Insert into Pet failed.\n", insErr)
+			// log.Panic("Insert into Pet failed.\n", insErr)
 			http.Error(w, "Invalid input", 405)
 			return
 		}
 		log.Println("You added a new pet, id is: " + string(id) + " | name is: " + name)
 	}
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(pet); err != nil {
-		panic(err)
+	if jsonErr := json.NewEncoder(w).Encode(pet); jsonErr != nil {
+		panic(jsonErr)
 	}
+
 }
 
 /*PutFunction handling the Put method to update the record to the database. */
@@ -231,10 +228,18 @@ func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		log.Panic("No status in the path")
 	}
+	fmt.Println("param3 is: " + param3)
+	// var checkParam3 models.Status
+	checkParam3 := models.Status(param3)
+
+	// Checking the input status ISValid
+	if !checkParam3.IsValid() {
+		fmt.Println(checkParam3)
+		http.Error(w, "Invalid status value", 405)
+		return
+	}
 
 	// // Query all pets having status, append all pet to pets []Pet array;
-	// pet := &models.Pet{}
-	// var pets []models.Pet
 	// Clear the pets array
 	var pet Pet
 	var pets []Pet
@@ -311,7 +316,7 @@ func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
 	log.Printf("There are %v records fetched!\n", count)
 	log.Println("You fetched pets by Status!")
 	w.WriteHeader(http.StatusOK)

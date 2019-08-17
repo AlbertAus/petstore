@@ -15,15 +15,15 @@ import (
 
 // CreateDatabase is the Database initial settings
 func CreateDatabase() (*sql.DB, error) {
-	// serverName := "localhost:3306"
-	// user := "albert"
-	// password := "CDLcdl"
-	// dbName := "petStore"
-
-	serverName := "localhost:3307"
+	serverName := "localhost:3306"
 	user := "root"
-	password := "Solutions!"
+	password := "CDLcdl"
 	dbName := "petStore"
+
+	// serverName := "localhost:3307"
+	// user := "root"
+	// password := "Solutions!"
+	// dbName := "petStore"
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&multiStatements=true", user, password, serverName, dbName)
 	db, err := sql.Open("mysql", connectionString)

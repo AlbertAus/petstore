@@ -1,8 +1,5 @@
 package models
 
-/*StructToString to convert struct to string*/
-type StructToString struct{}
-
 /*Pet defined the pet's varialbes ...*/
 type Pet struct {
 	ID        int64    `json:"id"`
@@ -21,6 +18,25 @@ const (
 	pending   Status = "pending"
 	sold      Status = "sold"
 )
+
+// Returning the status value for checking Status ISValid
+func (st Status) String() string {
+	switch st {
+	case available:
+		return "available"
+	case pending:
+		return "pending"
+	case sold:
+		return "sold"
+	default:
+		return "INVALID"
+	}
+}
+
+// IsValid checking the input Status value is valid or not.
+func (st Status) IsValid() bool {
+	return st.String() != "INVALID"
+}
 
 /*Category Define the Category struct*/
 type Category struct {
