@@ -8,6 +8,8 @@ This is a Golang example of https://petstore.swagger.io PetStore .
 
 # Golang example of PetStore API
 
+Go version: go version go1.12.7
+
 1. Database version: MariaDB 10.4.6
 2. Database setting in databaseSetting.go file
     serverName := "localhost:3306"
