@@ -420,7 +420,7 @@ func PetPostUpdateFunction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("param2 is:", param2)
+	fmt.Println("param2 is:", param2)
 
 	// Setup DB to create Database connection and defer to Close() the DB connection
 	DB, DBerr := db.CreateDatabase()
@@ -570,6 +570,7 @@ func PetDeleteFunction(w http.ResponseWriter, r *http.Request) {
 
 /*PetUploadImageFunction handling the post method to upload a pet's Image by petID. */
 func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("********* Entering the controller PetUploadImageFunction(w,r) *********")
 	// Setup DB to create Database connection and defer to Close() the DB connection
 	DB, err := db.CreateDatabase()
 	if err != nil {
@@ -579,7 +580,7 @@ func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
 
 	var pet Pet
 
-	if r.Method == "PUT" {
+	if r.Method == "POST" {
 
 		vars := mux.Vars(r)
 		id, ok1 := vars["id"]
