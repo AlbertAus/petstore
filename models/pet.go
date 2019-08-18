@@ -44,22 +44,15 @@ type Category struct {
 	Name string `json:"name"`
 }
 
-// /*Photourl Define the photourl for photoUrls and tags*/
-// type Photourl struct {
-// 	// XMLName xml.Name `xml:"photourl"`
-// 	Name string `json:"name"`
-// 	// Wrapped bool   `json:"wrapped"`
-// }
-
 /*Tag use for tags ...*/
 type Tag struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-// /*Tags use for all tags ...*/
-// type Tags struct {
-// 	// XMLName xml.Name `xml:"tags"`
-// 	Name int64 `json:"name"`
-// 	// Wrapped bool  `json:"wrapped"`
-// }
+/*PetNotFound type for Pet Not Found error*/
+type PetNotFound struct {
+	Code    int64  `json:"code"`
+	Type    string  `json:"error"`
+	Message string `json:"message"`
+}

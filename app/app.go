@@ -18,19 +18,7 @@ type App struct {
 * Redirect all the requests to different Params HandlerFunc.
  */
 func (app *App) SetupRouter() {
-
-	// Handler two params GET Method
-	app.Router.
-		Methods("GET").
-		Path("/{param1}/{param2}").
-		HandlerFunc(app.twoParamsHandlerFunc)
-
-	// Handler three params GET Method
-	app.Router.
-		Methods("GET").
-		Path("/{param1}/{param2}/{param3}").
-		HandlerFunc(app.threeParamsHandlerFunc)
-
+	// Handler one param Methods
 	app.Router.
 		Methods("POST").
 		Path("/{param1}").
@@ -41,20 +29,32 @@ func (app *App) SetupRouter() {
 		Path("/{param1}").
 		HandlerFunc(app.oneParamsHandlerFunc)
 
+	// Handler two params  Method
+	app.Router.
+		Methods("GET").
+		Path("/{param1}/{param2}").
+		HandlerFunc(app.twoParamsHandlerFunc)
+
 	app.Router.
 		Methods("POST").
 		Path("/{param1}/{param2}").
-		HandlerFunc(Handler.PostUpdateFunction)
+		HandlerFunc(app.twoParamsHandlerFunc)
 
 	app.Router.
 		Methods("DELETE").
 		Path("/{param1}/{param2}").
-		HandlerFunc(Handler.DeleteFunction)
+		HandlerFunc(app.twoParamsHandlerFunc)
+
+	// Handler three params  Method
+	app.Router.
+		Methods("GET").
+		Path("/{param1}/{param2}/{param3}").
+		HandlerFunc(app.threeParamsHandlerFunc)
 
 	app.Router.
 		Methods("POST").
 		Path("/{param1}/{param2}/{param3}").
-		HandlerFunc(Handler.UploadImageFunction)
+		HandlerFunc(app.threeParamsHandlerFunc)
 }
 
 /**
@@ -73,10 +73,7 @@ func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		switch param1 {
 		case "pet":
 			fmt.Println("Calling Pet POST handler function")
-			// app.petGetFunction(w, r)
 			Handler.PetPostFunction(w, r)
-			// Call PetHandler function
-			// controller.PetGetFunction(w, r)
 		case "store":
 			fmt.Println("Calling store POST handler function")
 		case "user":
@@ -84,14 +81,13 @@ func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		default:
 			fmt.Println("Wrong URL!")
 		}
-	} else if r.Method == "PUT" {
+	}
+
+	if r.Method == "PUT" {
 		switch param1 {
 		case "pet":
 			fmt.Println("Calling Pet PUT handler function")
-			// app.petGetFunction(w, r)
 			Handler.PetPutFunction(w, r)
-			// Call PetHandler function
-			// controller.PetGetFunction(w, r)
 		case "store":
 			fmt.Println("Calling store PUT handler function")
 		case "user":
@@ -121,26 +117,55 @@ func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("param1 is:", param1)
 	fmt.Println("param2 is:", param2)
-	// return app.getFunction
 
-	switch param1 {
-	case "pet":
-		if param2 == "findByStatus" {
-			fmt.Println("Calling Pet findByStatus handler function")
-			Handler.PetGetStatusFunction(w, r)
-		} else {
-			fmt.Println("Calling PetGetFunction handler function")
-			// app.petGetFunction(w, r)
-			Handler.PetGetFunction(w, r)
+	// Handle two params GET METHODs
+	if r.Method == "GET" {
+		switch param1 {
+		case "pet":
+			if param2 == "findByStatus" {
+				fmt.Println("Calling Pet findByStatus handler function")
+				Handler.PetGetStatusFunction(w, r)
+			} else {
+				fmt.Println("Calling PetGetFunction handler function")
+				Handler.PetGetFunction(w, r)
+			}
+		case "store":
+			fmt.Println("Calling store handler function")
+		case "user":
+			fmt.Println("Calling user handler function")
+		default:
+			fmt.Println("Wrong URL!")
 		}
-		// Call PetHandler function
-		// controller.PetGetFunction(w, r)
-	case "store":
-		fmt.Println("Calling store handler function")
-	case "user":
-		fmt.Println("Calling user handler function")
-	default:
-		fmt.Println("Wrong URL!")
+	}
+
+	// Handle two params POST METHODs
+	if r.Method == "POST" {
+		switch param1 {
+		case "pet":
+			fmt.Println("Calling PetPostUpdateFunction handler function")
+			Handler.PetPostUpdateFunction(w, r)
+		case "store":
+			fmt.Println("Calling store handler function")
+		case "user":
+			fmt.Println("Calling user handler function")
+		default:
+			fmt.Println("Wrong URL!")
+		}
+	}
+
+	// Handle two params DELETE METHODs
+	if r.Method == "DELETE" {
+		switch param1 {
+		case "pet":
+			fmt.Println("Calling PetDeleteFunction handler function")
+			Handler.PetDeleteFunction(w, r)
+		case "store":
+			fmt.Println("Calling store handler function")
+		case "user":
+			fmt.Println("Calling user handler function")
+		default:
+			fmt.Println("Wrong URL!")
+		}
 	}
 }
 
@@ -161,7 +186,6 @@ func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	log.Println("param1 is:", param1)
 	log.Println("Param2 is:", param2)
 	log.Println("param3 is:", param3)
-	// return app.getFunction
 
 	switch param1 {
 	case "pet":
@@ -177,7 +201,6 @@ func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "store":
 		if param2 == "inventory" {
 			fmt.Println("Calling store inventory handler function")
-			// app.petGetStatusFunction(w, r)
 		} else if param2 == "order" {
 			fmt.Println("Calling store order handler function")
 		}
@@ -185,7 +208,6 @@ func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	case "user":
 		if param2 == "createWithArray" {
 			fmt.Println("Calling user createWithArray handler function")
-			// app.petGetStatusFunction(w, r)
 		} else if param2 == "createWithList" {
 			fmt.Println("Calling user createWithList handler function")
 		} else if param2 == "login" {

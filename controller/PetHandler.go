@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -57,7 +58,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 		// Switch the err and print the outcomes.
 		switch err := rows.Scan(&pet.ID, &pet.Category.ID, &pet.Category.Name, &pet.Name, &tmpPhotoUrls, &tmpTags, &pet.Status); err {
 		case sql.ErrNoRows:
-			http.Error(w, "Pet not found", 404)
+			petNotFound(param2, w)
 			return
 
 		case nil:
@@ -84,8 +85,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("After Decode tmpTags err is %v\n, array is %v\n", errTagsJSON, tagsJSON)
 
 			if err != nil {
-				// log.Panic("Database SELECT failed", err)
-				http.Error(w, "Pet not found", 404)
+				petNotFound(param2, w)
 				return
 			}
 
@@ -97,15 +97,13 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		// log.Panic("Database SELECT failed", err)
-		http.Error(w, "Pet not found", 404)
+		petNotFound(param2, w)
 		return
 	}
 
 	// If no Pet found, then return 404 error and "Pet not found"
 	if count == 0 {
-		// log.Printf(w, "No rows were returned!\n")
-		http.Error(w, "Pet not found", 404)
+		petNotFound(param2, w)
 		return
 	}
 
@@ -173,7 +171,6 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 
 		insForm, insPrepareErr := DB.Prepare("INSERT INTO `pet` ( id, category, name, photoUrls, tags, status ) VALUES (?,?,?,?,?,?)")
 		if insPrepareErr != nil {
-			// log.Panic("Database INSERT failed")
 			http.Error(w, "Invalid input", 405)
 			return
 		}
@@ -256,14 +253,14 @@ func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Exists!")
 			updateSQL, updateSQLPrepareErr := DB.Prepare("UPDATE `pet` SET id = ?, category = ?, name = ?, photoUrls = ?, tags = ?, status = ? WHERE id = ?")
 			if updateSQLPrepareErr != nil {
-				fmt.Println("Database INSERT failed", updateSQLPrepareErr)
+				fmt.Println("Database UPDATE failed", updateSQLPrepareErr)
 				http.Error(w, "Validation exception", 405)
 				return
 			}
 
 			updateRes, updateSQLErr := updateSQL.Exec(id, category, name, photourls, tags, status, id)
 			if updateSQLErr != nil {
-				fmt.Println("Insert into Pet failed.\n", updateSQLErr)
+				fmt.Println("UPDATE Pet failed.\n", updateSQLErr)
 				http.Error(w, "Validation exception", 405)
 				return
 			}
@@ -274,7 +271,7 @@ func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 			if err2 != nil {
 				fmt.Println(err2.Error())
 			} else {
-				fmt.Printf("%v record have been updated!", countUpdated)
+				fmt.Printf("%v record have been updated!\n", countUpdated)
 				if countUpdated == 0 {
 					http.Error(w, "Validation exception", 405)
 					return
@@ -413,36 +410,109 @@ func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*PostUpdateFunction handling the post method to update record by petID. */
-func PostUpdateFunction(w http.ResponseWriter, r *http.Request) {
+/*PetPostUpdateFunction handling the post method to update record by petID. */
+func PetPostUpdateFunction(w http.ResponseWriter, r *http.Request) {
+	log.Println("********* Entering the controller PetPostUpdateFunction(w,r) *********")
+	vars := mux.Vars(r)
+	param2, ok2 := vars["param2"]
+	if !ok2 {
+		http.Error(w, "Invalid input", 405)
+		return
+	}
+
+	log.Println("param2 is:", param2)
 
 	// Setup DB to create Database connection and defer to Close() the DB connection
-	DB, err := db.CreateDatabase()
-	if err != nil {
+	DB, DBerr := db.CreateDatabase()
+	if DBerr != nil {
 		log.Panic("Database connection error!")
 	}
 	defer DB.Close()
-	var pet Pet
-	if r.Method == "PUT" {
-		id := r.FormValue("id")
+
+	// var pet Pet
+
+	if r.Method == "POST" {
+		// Testing request POST body
+		id := param2
 		name := r.FormValue("name")
-
-		insForm, err := DB.Prepare("UPDATE `pet` SET Pet=? WHERE id = ?")
-		if err != nil {
-			log.Panic("Database UPDATE failed")
+		status := r.FormValue("status")
+		fmt.Printf("name is: %v, status is: %v\n", name, status)
+		if name == "" || status == "" {
+			http.Error(w, "Invalid input", 405)
+			return
 		}
 
-		insForm.Exec(name, id)
-		log.Println("You updated a pet by: " + id + "!")
+		// Using checkStatus to check the input status ISValid
+		var checkStatus models.Status
+		checkStatus = models.Status(status)
+
+		if !checkStatus.IsValid() {
+			fmt.Println(checkStatus)
+			http.Error(w, "Invalid input", 405)
+			return
+		}
+
+		// Check the input Pet id's pet is Exists or not.
+		var exists bool
+		row := DB.QueryRow("SELECT EXISTS(SELECT * FROM `pet` WHERE id = ?)", id)
+		if existsErr := row.Scan(&exists); existsErr != nil {
+			fmt.Println(existsErr)
+		}
+		if exists {
+			fmt.Println("Exists!")
+			updateSQL, updateSQLPrepareErr := DB.Prepare("UPDATE `pet` SET name = ?,status = ? WHERE id = ?")
+			if updateSQLPrepareErr != nil {
+				fmt.Println("Database UPDATE failed", updateSQLPrepareErr)
+				http.Error(w, "Invalid input", 405)
+				return
+			}
+
+			updateRes, updateSQLErr := updateSQL.Exec(name, status, id)
+			if updateSQLErr != nil {
+				fmt.Println("Update Pet failed.\n", updateSQLErr)
+				http.Error(w, "Invalid input", 405)
+				return
+			}
+
+			// Count Affected Rows, if countUpdated == 0, means Pet not found.
+			countUpdated, err2 := updateRes.RowsAffected()
+
+			if err2 != nil {
+				fmt.Println(err2.Error())
+			} else {
+				fmt.Printf("%v record have been updated!\n", countUpdated)
+				if countUpdated == 0 {
+					http.Error(w, "Invalid input", 405)
+					return
+				}
+			}
+
+			fmt.Printf("You updated a pet, id is: %v, name is: %s, status is: %s \n", id, name, status)
+		} else if !exists {
+			fmt.Println("not exists!")
+			http.Error(w, "Invalid input", 405)
+			return
+		}
 	}
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(pet); err != nil {
-		panic(err)
-	}
+	// if jsonErr := json.NewEncoder(w).Encode(pet); jsonErr != nil {
+	// 	panic(jsonErr)
+	// }
+
 }
 
-/*DeleteFunction handling the delete method to delete record by petID. */
-func DeleteFunction(w http.ResponseWriter, r *http.Request) {
+/*PetDeleteFunction handling the delete method to delete record by petID. */
+func PetDeleteFunction(w http.ResponseWriter, r *http.Request) {
+	log.Println("********* Entering the controller PetDeleteFunction(w,r) *********")
+	vars := mux.Vars(r)
+	param2, ok2 := vars["param2"]
+	if !ok2 {
+		http.Error(w, "Invalid input", 405)
+		return
+	}
+
+	log.Println("param2 is:", param2)
+
 	// Setup DB to create Database connection and defer to Close() the DB connection
 	DB, err := db.CreateDatabase()
 	if err != nil {
@@ -450,32 +520,56 @@ func DeleteFunction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer DB.Close()
 
-	var pet Pet
+	if r.Method == "DELETE" {
+		// Testing request POST body
+		id := param2
 
-	if r.Method == "PUT" {
-		vars := mux.Vars(r)
-		id, ok := vars["id"]
-		if !ok {
-			log.Panic("No id in the path")
+		// Check the input Pet id's pet is Exists or not.
+		var exists bool
+		row := DB.QueryRow("SELECT EXISTS(SELECT * FROM `pet` WHERE id = ?)", id)
+		if existsErr := row.Scan(&exists); existsErr != nil {
+			fmt.Println(existsErr)
 		}
+		if exists {
+			fmt.Println("Exists!")
+			updateSQL, updateSQLPrepareErr := DB.Prepare("DELETE FROM `pet` WHERE id =?")
+			if updateSQLPrepareErr != nil {
+				fmt.Println("Database DELETE failed", updateSQLPrepareErr)
+				http.Error(w, "Invalid input", 405)
+				return
+			}
 
-		insForm, err := DB.Prepare("DELETE FROM `pet` WHERE id =?")
-		if err != nil {
-			log.Panic("Database UPDATE failed")
+			updateRes, updateSQLErr := updateSQL.Exec(id)
+			if updateSQLErr != nil {
+				fmt.Println("DELETE Pet failed.\n", updateSQLErr)
+				http.Error(w, "Invalid input", 405)
+				return
+			}
+
+			// Count Affected Rows, if countUpdated == 0, means Pet not found.
+			countUpdated, err2 := updateRes.RowsAffected()
+
+			if err2 != nil {
+				fmt.Println(err2.Error())
+			} else {
+				fmt.Printf("%v record have been DELETE!\n", countUpdated)
+				if countUpdated == 0 {
+					http.Error(w, "Invalid input", 405)
+					return
+				}
+			}
+			fmt.Printf("You DELETE a pet, id is: %v\n", id)
+		} else if !exists {
+			fmt.Println("not exists!")
+			http.Error(w, "Invalid input", 405)
+			return
 		}
-
-		insForm.Exec(id)
-		log.Println("You updated a pet by: " + id + "!")
 	}
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(pet); err != nil {
-		panic(err)
-	}
-
 }
 
-/*UploadImageFunction handling the post method to upload a pet's Image by petID. */
-func UploadImageFunction(w http.ResponseWriter, r *http.Request) {
+/*PetUploadImageFunction handling the post method to upload a pet's Image by petID. */
+func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
 	// Setup DB to create Database connection and defer to Close() the DB connection
 	DB, err := db.CreateDatabase()
 	if err != nil {
@@ -508,5 +602,21 @@ func UploadImageFunction(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(pet); err != nil {
 		panic(err)
+	}
+}
+
+// petNotFound function handling the Pet Not Found message
+func petNotFound(param2 string, w http.ResponseWriter) {
+	// Output Pet Not Found message.
+	var errMessage models.PetNotFound
+	errMessage.Code, _ = strconv.ParseInt(param2, 10, 64)
+	errMessage.Type = "error"
+	errMessage.Message = "Pet not found"
+	// if err := json.NewEncoder(w).Encode(errMessage); err != nil {
+	// 	panic(err)
+	// }
+	outputMessage, outputErr := json.Marshal(errMessage)
+	if outputErr == nil {
+		http.Error(w, string(outputMessage), 404)
 	}
 }
