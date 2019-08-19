@@ -26,6 +26,8 @@ type Pet models.Pet
 /*PetGetFunction handling the get method to query record and pass the JSON data to front end. */
 func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 	log.Println("********* Entering the controller PetGetFunction(w,r) *********")
+
+	// Getting all the params from URL
 	vars := mux.Vars(r)
 	param2, ok2 := vars["param2"]
 	if !ok2 {
@@ -35,6 +37,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("param2 is:", param2)
 
+	// Defining the pet for Query use.
 	var pet Pet
 
 	// Use the tmpPhotoUrls string to store the &pet.PhotoUrls string templetely, then Decode to []photourl format.
@@ -109,6 +112,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Write the response to front end.
 	w.WriteHeader(http.StatusOK)
 	log.Printf("There are %v records fetched!\n", count)
 	log.Println("You fetched pets by id!")
@@ -127,6 +131,7 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer DB.Close()
 
+	// Defining the pet for Query use.
 	var pet Pet
 
 	if r.Method == "POST" {
@@ -136,26 +141,31 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Decode r.Body to pet struct format
 		inputErr := json.NewDecoder(r.Body).Decode(&pet)
 		if inputErr != nil {
 			http.Error(w, "Invalid input", 405)
 			return
 		}
 		fmt.Printf("Post pet is: %v\n", pet)
+
 		id := pet.ID
 		name := pet.Name
 		category, categoryErr := json.Marshal(pet.Category)
+
 		if categoryErr != nil {
 			// log.Panic("Converting pet.Category failed.", categoryErr)
 			http.Error(w, "Invalid input", 405)
 			return
 		}
+
 		photourls, urlsErr := json.Marshal(pet.PhotoUrls)
 		if urlsErr != nil {
 			// log.Panic("Converting pet.Category failed.", urlsErr)
 			http.Error(w, "Invalid input", 405)
 			return
 		}
+
 		tags, tagsErr := json.Marshal(pet.Tags)
 		if tagsErr != nil {
 			// log.Panic("Converting pet.Category failed.", tagsErr)
@@ -165,12 +175,14 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 		status := pet.Status
 
 		// fmt.Println(pet.Status.IsValid())
+
 		// Checking the input status ISValid
 		if !pet.Status.IsValid() {
 			http.Error(w, "invalid input", 405)
 			return
 		}
 
+		// INSERT INTO pet table with values.
 		insForm, insPrepareErr := DB.Prepare("INSERT INTO `pet` ( id, category, name, photoUrls, tags, status ) VALUES (?,?,?,?,?,?)")
 		if insPrepareErr != nil {
 			http.Error(w, "Invalid input", 405)
@@ -185,6 +197,8 @@ func PetPostFunction(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Printf("You inserted a pet, id is: %v, name is: %s \n", id, name)
 	}
+
+	// Write the response to front end.
 	w.WriteHeader(http.StatusOK)
 	if jsonErr := json.NewEncoder(w).Encode(pet); jsonErr != nil {
 		panic(jsonErr)
@@ -201,6 +215,7 @@ func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer DB.Close()
 
+	// Defining the pet for Query use.
 	var pet Pet
 
 	if r.Method == "PUT" {
@@ -210,6 +225,7 @@ func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Decode r.Body to pet struct format
 		inputErr := json.NewDecoder(r.Body).Decode(&pet)
 		if inputErr != nil {
 			http.Error(w, "Validation exception", 405)
@@ -251,6 +267,8 @@ func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 		if existsErr := row.Scan(&exists); existsErr != nil {
 			fmt.Println(existsErr)
 		}
+
+		// UPDATE the pet if Exists, other wise return Invalid ID supplied
 		if exists {
 			fmt.Println("Exists!")
 			updateSQL, updateSQLPrepareErr := DB.Prepare("UPDATE `pet` SET id = ?, category = ?, name = ?, photoUrls = ?, tags = ?, status = ? WHERE id = ?")
@@ -287,6 +305,8 @@ func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	// Write the response to front end
 	w.WriteHeader(http.StatusOK)
 	if jsonErr := json.NewEncoder(w).Encode(pet); jsonErr != nil {
 		panic(jsonErr)
@@ -497,9 +517,6 @@ func PetPostUpdateFunction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(http.StatusOK)
-	// if jsonErr := json.NewEncoder(w).Encode(pet); jsonErr != nil {
-	// 	panic(jsonErr)
-	// }
 
 }
 
@@ -699,10 +716,6 @@ func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("There are %v records fetched!\n", count)
 		log.Println("You fetched pets by id!")
-		// w.WriteHeader(http.StatusOK)
-		// if err := json.NewEncoder(w).Encode(pet); err != nil {
-		// 	panic(err)
-		// }
 
 		photourls, urlsErr := json.Marshal(pet.PhotoUrls)
 		if urlsErr != nil {
@@ -735,9 +748,8 @@ func petNotFound(param2 string, w http.ResponseWriter) {
 	errMessage.Code, _ = strconv.ParseInt(param2, 10, 64)
 	errMessage.Type = "error"
 	errMessage.Message = "Pet not found"
-	// if err := json.NewEncoder(w).Encode(errMessage); err != nil {
-	// 	panic(err)
-	// }
+
+	// Write the response text to front end
 	outputMessage, outputErr := json.Marshal(errMessage)
 	if outputErr == nil {
 		http.Error(w, string(outputMessage), 404)

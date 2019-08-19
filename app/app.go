@@ -61,6 +61,7 @@ func (app *App) SetupRouter() {
 *	oneParamsHandlerFunc use for calling different handlers by the Paths with one Parameters.
  */
 func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
+	// Getting all the params from URL
 	vars := mux.Vars(r)
 	param1, ok1 := vars["param1"]
 
@@ -68,6 +69,7 @@ func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		log.Panic("No Pet in the path", ok1)
 	}
 
+	// Checking the METHODS, param1 values, then call related function
 	fmt.Println("param1 is:", param1)
 	if r.Method == "POST" {
 		switch param1 {
@@ -83,6 +85,7 @@ func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Checking the METHODS, param1 values, then call related function
 	if r.Method == "PUT" {
 		switch param1 {
 		case "pet":
@@ -102,7 +105,7 @@ func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 *	twoParamsHandlerFunc use for calling different handlers by the Paths with two Parameters.
  */
 func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
-
+	// Getting all the params from URL
 	vars := mux.Vars(r)
 	param1, ok1 := vars["param1"]
 	param2, ok2 := vars["param2"]
@@ -173,7 +176,7 @@ func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 *	threeParamsHandlerFunc use for calling different handlers by the Paths with three Parameters.
  */
 func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
-
+	// Getting all the params from URL
 	vars := mux.Vars(r)
 	param1, ok1 := vars["param1"]
 	param2, ok2 := vars["param2"]
@@ -195,6 +198,7 @@ func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("param2 is:", param2)
 	fmt.Println("param3 is:", param3)
 
+	// Checking the METHODS, params values, then call related function
 	// Handle three params GET METHODs
 	if r.Method == "GET" {
 		switch param1 {
@@ -226,6 +230,7 @@ func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Checking the METHODS, params values, then call related function
 	// Handle three params POST METHODs
 	if r.Method == "POST" {
 		switch param1 {
