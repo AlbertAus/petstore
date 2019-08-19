@@ -17,4 +17,4 @@ Go version: go version go1.12.7
 	password := "password!"
 	dbName := "petStore"
 3. Using app/database/petStore.sql to import sample data.
-4. Only the Pet's part finish at the moment, will keep updating when I have time.
+4. Only the Pet's part finished at the moment, will keep updating when I have time.

@@ -53,6 +53,13 @@ type Tag struct {
 /*PetNotFound type for Pet Not Found error*/
 type PetNotFound struct {
 	Code    int64  `json:"code"`
-	Type    string  `json:"error"`
+	Type    string `json:"error"`
+	Message string `json:"message"`
+}
+
+/*ResponseBody type for Reponse Body Message*/
+type ResponseBody struct {
+	Code    int64  `json:"code"`
+	Type    string `json:"error"`
 	Message string `json:"message"`
 }
