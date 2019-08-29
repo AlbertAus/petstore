@@ -1,8 +1,6 @@
-package controller
+package pet
 
 import (
-	db "PetStore/database"
-	"PetStore/models"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -10,11 +8,14 @@ import (
 	"net/http"
 	"strings"
 
+	db "github.com/AlbertAus/petstore/database"
+	"github.com/AlbertAus/petstore/model"
+
 	"github.com/gorilla/mux"
 )
 
-/*PetGetFunction handling the get method to query record and pass the JSON data to front end. */
-func PetGetFunction(w http.ResponseWriter, r *http.Request) {
+// Get handling the get method to query record and pass the JSON data to front end.
+func Get(w http.ResponseWriter, r *http.Request) {
 	log.Println("********* Entering the controller PetGetFunction(w,r) *********")
 
 	// Getting all the params from URL
@@ -53,7 +54,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 		// Switch the err and print the outcomes.
 		switch err := rows.Scan(&pet.ID, &pet.Category.ID, &pet.Category.Name, &pet.Name, &tmpPhotoUrls, &tmpTags, &pet.Status); err {
 		case sql.ErrNoRows:
-			petNotFound(param2, w)
+			notFound(param2, w)
 			return
 
 		case nil:
@@ -71,7 +72,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("After Decode tmpPhotoUrls err is %s\n, array is %s\n", errPhotoUrlsJSON, photoUrlsJSON)
 
 			// Defining the tagsJSON for Decode the string to []photourl
-			var tagsJSON []models.Tag
+			var tagsJSON []model.Tag
 			decodeTmpTags := json.NewDecoder(strings.NewReader(tmpTags))
 			errTagsJSON := decodeTmpTags.Decode(&tagsJSON)
 			pet.Tags = tagsJSON
@@ -80,7 +81,7 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("After Decode tmpTags err is %v\n, array is %v\n", errTagsJSON, tagsJSON)
 
 			if err != nil {
-				petNotFound(param2, w)
+				notFound(param2, w)
 				return
 			}
 
@@ -92,13 +93,13 @@ func PetGetFunction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		petNotFound(param2, w)
+		notFound(param2, w)
 		return
 	}
 
 	// If no Pet found, then return 404 error and "Pet not found"
 	if count == 0 {
-		petNotFound(param2, w)
+		notFound(param2, w)
 		return
 	}
 

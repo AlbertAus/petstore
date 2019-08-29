@@ -1,18 +1,19 @@
-package controller
+package pet
 
 import (
-	db "PetStore/database"
-	"PetStore/models"
 	"fmt"
 	"log"
 	"net/http"
 
+	db "github.com/AlbertAus/petstore/database"
+	"github.com/AlbertAus/petstore/model"
+
 	"github.com/gorilla/mux"
 )
 
-/*PetPostUpdateFunction handling the post method to update record by petID. */
-func PetPostUpdateFunction(w http.ResponseWriter, r *http.Request) {
-	log.Println("********* Entering the controller PetPostUpdateFunction(w,r) *********")
+// PostUpdate handling the post method to update record by petID.
+func PostUpdate(w http.ResponseWriter, r *http.Request) {
+	log.Println("********// Entering the controller PetPostUpdateFunction(w,r) *********")
 	vars := mux.Vars(r)
 	param2, ok2 := vars["param2"]
 	if !ok2 {
@@ -43,8 +44,8 @@ func PetPostUpdateFunction(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Using checkStatus to check the input status ISValid
-		var checkStatus models.Status
-		checkStatus = models.Status(status)
+		var checkStatus model.Status
+		checkStatus = model.Status(status)
 
 		if !checkStatus.IsValid() {
 			fmt.Println(checkStatus)
@@ -54,7 +55,7 @@ func PetPostUpdateFunction(w http.ResponseWriter, r *http.Request) {
 
 		// Check the input Pet id's pet is Exists or not.
 		var exists bool
-		row := DB.QueryRow("SELECT EXISTS(SELECT * FROM `pet` WHERE id = ?)", id)
+		row := DB.QueryRow("SELECT EXISTS(SELECT // FROM `pet` WHERE id = ?)", id)
 		if existsErr := row.Scan(&exists); existsErr != nil {
 			fmt.Println(existsErr)
 		}

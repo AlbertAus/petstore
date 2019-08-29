@@ -1,17 +1,18 @@
-package controller
+package pet
 
 import (
-	db "PetStore/database"
 	"fmt"
 	"log"
 	"net/http"
 
+	db "github.com/AlbertAus/petstore/database"
+
 	"github.com/gorilla/mux"
 )
 
-/*PetDeleteFunction handling the delete method to delete record by petID. */
-func PetDeleteFunction(w http.ResponseWriter, r *http.Request) {
-	log.Println("********* Entering the controller PetDeleteFunction(w,r) *********")
+// Delete handling the delete method to delete record by petID.
+func Delete(w http.ResponseWriter, r *http.Request) {
+	log.Println("******* Entering the controller PetDeleteFunction(w,r) *********")
 	vars := mux.Vars(r)
 	param2, ok2 := vars["param2"]
 	if !ok2 {
@@ -34,7 +35,7 @@ func PetDeleteFunction(w http.ResponseWriter, r *http.Request) {
 
 		// Check the input Pet id's pet is Exists or not.
 		var exists bool
-		row := DB.QueryRow("SELECT EXISTS(SELECT * FROM `pet` WHERE id = ?)", id)
+		row := DB.QueryRow("SELECT EXISTS(SELECT // FROM `pet` WHERE id = ?)", id)
 		if existsErr := row.Scan(&exists); existsErr != nil {
 			fmt.Println(existsErr)
 		}

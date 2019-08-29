@@ -1,17 +1,16 @@
 package app
 
 import (
-	Handler "PetStore/controller/pet"
 	"fmt"
 	"log"
 	"net/http"
 
+	pet "github.com/AlbertAus/petstore/controller/pet"
+
 	"github.com/gorilla/mux"
 )
 
-/**
-*	twoParamsHandlerFunc use for calling different handlers by the Paths with two Parameters.
- */
+// twoParamsHandlerFunc use for calling different handlers by the Paths with two Parameters.
 func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// Getting all the params from URL
 	vars := mux.Vars(r)
@@ -35,10 +34,10 @@ func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		case "pet":
 			if param2 == "findByStatus" {
 				fmt.Println("Calling Pet findByStatus handler function 2")
-				Handler.PetGetStatusFunction(w, r)
+				pet.GetStatus(w, r)
 			} else {
 				fmt.Println("Calling PetGetFunction handler function")
-				Handler.PetGetFunction(w, r)
+				pet.Get(w, r)
 			}
 		case "store":
 			fmt.Println("Calling store handler function")
@@ -54,7 +53,7 @@ func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		switch param1 {
 		case "pet":
 			fmt.Println("Calling PetPostUpdateFunction handler function")
-			Handler.PetPostUpdateFunction(w, r)
+			pet.PostUpdate(w, r)
 		case "store":
 			fmt.Println("Calling store handler function")
 		case "user":
@@ -69,7 +68,7 @@ func (app *App) twoParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		switch param1 {
 		case "pet":
 			fmt.Println("Calling PetDeleteFunction handler function")
-			Handler.PetDeleteFunction(w, r)
+			pet.Delete(w, r)
 		case "store":
 			fmt.Println("Calling store handler function")
 		case "user":

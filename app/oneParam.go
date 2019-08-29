@@ -1,17 +1,16 @@
 package app
 
 import (
-	Handler "PetStore/controller/pet"
 	"fmt"
 	"log"
 	"net/http"
 
+	pet "github.com/AlbertAus/petstore/controller/pet"
+
 	"github.com/gorilla/mux"
 )
 
-/**
-*	oneParamsHandlerFunc use for calling different handlers by the Paths with one Parameters.
- */
+// oneParamsHandlerFunc use for calling different handlers by the Paths with one Parameters.
 func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// Getting all the params from URL
 	vars := mux.Vars(r)
@@ -27,7 +26,7 @@ func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		switch param1 {
 		case "pet":
 			fmt.Println("Calling Pet POST handler function")
-			Handler.PetPostFunction(w, r)
+			pet.Post(w, r)
 		case "store":
 			fmt.Println("Calling store POST handler function")
 		case "user":
@@ -42,7 +41,7 @@ func (app *App) oneParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		switch param1 {
 		case "pet":
 			fmt.Println("Calling Pet PUT handler function")
-			Handler.PetPutFunction(w, r)
+			pet.Put(w, r)
 		case "store":
 			fmt.Println("Calling store PUT handler function")
 		case "user":

@@ -1,8 +1,6 @@
-package controller
+package pet
 
 import (
-	db "PetStore/database"
-	"PetStore/models"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -12,12 +10,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	db "github.com/AlbertAus/petstore/database"
+	"github.com/AlbertAus/petstore/model"
+
 	"github.com/gorilla/mux"
 )
 
-/*PetUploadImageFunction handling the post method to upload a pet's Image by petID. */
-func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("********* Entering the controller PetUploadImageFunction(w,r) *********")
+// UploadImage handling the post method to upload a pet's Image by petID.
+func UploadImage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("********// Entering the controller PetUploadImageFunction(w,r) *********")
 
 	// Parse our multipart form, 10 << 20 specifies a maximum
 	// upload of 10 MB files.
@@ -83,7 +84,7 @@ func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("additionalMetadata is: %v\n", additionalMetadata)
 
 	var pet Pet
-	var responseBody models.ResponseBody
+	var responseBody model.ResponseBody
 
 	// Use the tmpPhotoUrls string to store the &pet.PhotoUrls string templetely, then Decode to []photourl format.
 	var tmpPhotoUrls string
@@ -99,7 +100,7 @@ func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
 			// Switch the err and print the outcomes.
 			switch err := rows.Scan(&pet.ID, &tmpPhotoUrls); err {
 			case sql.ErrNoRows:
-				petNotFound(param2, w)
+				notFound(param2, w)
 				return
 
 			case nil:
@@ -120,7 +121,7 @@ func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("The new pet.PhotoUrls is %s\n", pet.PhotoUrls)
 
 				if err != nil {
-					petNotFound(param2, w)
+					notFound(param2, w)
 					return
 				}
 
@@ -132,13 +133,13 @@ func PetUploadImageFunction(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if err != nil {
-			petNotFound(param2, w)
+			notFound(param2, w)
 			return
 		}
 
 		// If no Pet found, then return 404 error and "Pet not found"
 		if count == 0 {
-			petNotFound(param2, w)
+			notFound(param2, w)
 			return
 		}
 

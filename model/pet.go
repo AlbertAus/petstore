@@ -1,6 +1,6 @@
-package models
+package model
 
-/*Pet defined the pet's varialbes ...*/
+// Pet defined the pet's varialbes
 type Pet struct {
 	ID        int64    `json:"id"`
 	Category  Category `json:"category"`
@@ -10,7 +10,7 @@ type Pet struct {
 	Status    Status   `json:"status"`
 }
 
-/*Status use for Enum status variable ...*/
+// Status use for Enum status variable
 type Status string
 
 const (
@@ -38,26 +38,26 @@ func (st Status) IsValid() bool {
 	return st.String() != "INVALID"
 }
 
-/*Category Define the Category struct*/
+// Category Define the Category struct
 type Category struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-/*Tag use for tags ...*/
+// Tag use for tags
 type Tag struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-/*PetNotFound type for Pet Not Found error*/
+// PetNotFound type for Pet Not Found error
 type PetNotFound struct {
 	Code    int64  `json:"code"`
 	Type    string `json:"error"`
 	Message string `json:"message"`
 }
 
-/*ResponseBody type for Reponse Body Message*/
+// ResponseBody type for Reponse Body Message
 type ResponseBody struct {
 	Code    int64  `json:"code"`
 	Type    string `json:"error"`

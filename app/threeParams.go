@@ -1,17 +1,16 @@
 package app
 
 import (
-	Handler "PetStore/controller/pet"
 	"fmt"
 	"log"
 	"net/http"
 
+	pet "github.com/AlbertAus/petstore/controller/pet"
+
 	"github.com/gorilla/mux"
 )
 
-/**
-*	threeParamsHandlerFunc use for calling different handlers by the Paths with three Parameters.
- */
+// threeParamsHandlerFunc use for calling different handlers by the Paths with three Parameters.
 func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	// Getting all the params from URL
 	vars := mux.Vars(r)
@@ -42,7 +41,7 @@ func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		case "pet":
 			// if param2 == "findByStatus" {
 			// 	fmt.Println("Calling Pet findByStatus handler function 3")
-			// 	Handler.PetGetStatusFunction(w, r)
+			// 	handler.PetGetStatusFunction(w, r)
 			// }
 
 		case "store":
@@ -74,7 +73,7 @@ func (app *App) threeParamsHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		case "pet":
 			if param3 == "uploadImage" {
 				fmt.Println("Calling Pet uploadImage handler function")
-				Handler.PetUploadImageFunction(w, r)
+				pet.UploadImage(w, r)
 			}
 
 		case "store":

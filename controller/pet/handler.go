@@ -1,19 +1,20 @@
-package controller
+package pet
 
 import (
-	"PetStore/models"
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+	"github.com/AlbertAus/petstore/model"
 )
 
 //Pet defined for Global usuage
-type Pet models.Pet
+type Pet model.Pet
 
-// petNotFound function handling the Pet Not Found message
-func petNotFound(param2 string, w http.ResponseWriter) {
+// notFound function handling the Pet Not Found message
+func notFound(param2 string, w http.ResponseWriter) {
 	// Output Pet Not Found message.
-	var errMessage models.PetNotFound
+	var errMessage model.PetNotFound
 	errMessage.Code, _ = strconv.ParseInt(param2, 10, 64)
 	errMessage.Type = "error"
 	errMessage.Message = "Pet not found"

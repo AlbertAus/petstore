@@ -1,15 +1,16 @@
-package controller
+package pet
 
 import (
-	db "PetStore/database"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+
+	db "github.com/AlbertAus/petstore/database"
 )
 
-/*PetPutFunction handling the Put method to update the record to the database. */
-func PetPutFunction(w http.ResponseWriter, r *http.Request) {
+// Put handling the Put method to update the record to the database.
+func Put(w http.ResponseWriter, r *http.Request) {
 	// Setup DB to create Database connection and defer to Close() the DB connection
 	DB, DBerr := db.CreateDatabase()
 	if DBerr != nil {
@@ -65,7 +66,7 @@ func PetPutFunction(w http.ResponseWriter, r *http.Request) {
 
 		// Check the input Pet id's pet is Exists or not.
 		var exists bool
-		row := DB.QueryRow("SELECT EXISTS(SELECT * FROM `pet` WHERE id = ?)", id)
+		row := DB.QueryRow("SELECT EXISTS(SELECT // FROM `pet` WHERE id = ?)", id)
 		if existsErr := row.Scan(&exists); existsErr != nil {
 			fmt.Println(existsErr)
 		}

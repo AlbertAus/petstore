@@ -4,12 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"PetStore/app"
+	"github.com/AlbertAus/petstore/app"
 
 	"github.com/gorilla/mux"
 )
 
-/*APP enter point*/
+// APP enter point
 func main() {
 
 	// Define the app, putting Router to the app

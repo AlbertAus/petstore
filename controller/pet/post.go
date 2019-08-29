@@ -1,15 +1,16 @@
-package controller
+package pet
 
 import (
-	db "PetStore/database"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+
+	db "github.com/AlbertAus/petstore/database"
 )
 
-/*PetPostFunction handling the Post method to add new record to the database. */
-func PetPostFunction(w http.ResponseWriter, r *http.Request) {
+// Post handling the Post method to add new record to the database.
+func Post(w http.ResponseWriter, r *http.Request) {
 	// Setup DB to create Database connection and defer to Close() the DB connection
 	DB, DBerr := db.CreateDatabase()
 	if DBerr != nil {

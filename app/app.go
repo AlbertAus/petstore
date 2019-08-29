@@ -4,14 +4,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/*App struct for defining the Router*/
+// App struct for defining the Router
 type App struct {
 	Router *mux.Router
 }
 
-/*SetupRouter Setup Routers for the APIs.
-* Redirect all the requests to different Params HandlerFunc.
- */
+// SetupRouter Setup Routers for the APIs.
+// Redirect all the requests to different Params HandlerFunc.
 func (app *App) SetupRouter() {
 	// Handler one param Methods
 	app.Router.

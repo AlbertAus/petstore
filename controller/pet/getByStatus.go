@@ -1,18 +1,19 @@
-package controller
+package pet
 
 import (
-	db "PetStore/database"
-	"PetStore/models"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+
+	db "github.com/AlbertAus/petstore/database"
+	"github.com/AlbertAus/petstore/model"
 )
 
-/*PetGetStatusFunction handling the get findByStatus method to query record by Status and pass the JSON data to front end. */
-func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
+// GetStatus handling the get findByStatus method to query record by Status and pass the JSON data to front end.
+func GetStatus(w http.ResponseWriter, r *http.Request) {
 	// vars := mux.Vars(r)
 	// param3, ok := vars["param3"]
 	param3, ok := r.URL.Query()["status"]
@@ -22,12 +23,12 @@ func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var checkParam3 models.Status
+	var checkParam3 model.Status
 	//status for SQL Query use.
 	var statusQry string
 	for i := 0; i < len(param3); i++ {
-		// var checkParam3 models.Status
-		checkParam3 = models.Status(param3[i])
+		// var checkParam3 model.Status
+		checkParam3 = model.Status(param3[i])
 
 		// Add the param3[i] to statusQry string for SQL statement
 		statusQry = statusQry + "," + "'" + param3[i] + "'"
@@ -90,7 +91,7 @@ func PetGetStatusFunction(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("After Decode tmpPhotoUrls err is %s\n, array is %s\n", errPhotoUrlsJSON, photoUrlsJSON)
 
 			// Defining the tagsJSON for Decode the string to []photourl
-			var tagsJSON []models.Tag
+			var tagsJSON []model.Tag
 			decodeTmpTags := json.NewDecoder(strings.NewReader(tmpTags))
 			errTagsJSON := decodeTmpTags.Decode(&tagsJSON)
 			pet.Tags = tagsJSON
