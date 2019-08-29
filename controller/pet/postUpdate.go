@@ -55,7 +55,7 @@ func PostUpdate(w http.ResponseWriter, r *http.Request) {
 
 		// Check the input Pet id's pet is Exists or not.
 		var exists bool
-		row := DB.QueryRow("SELECT EXISTS(SELECT // FROM `pet` WHERE id = ?)", id)
+		row := DB.QueryRow("SELECT EXISTS(SELECT * FROM `pet` WHERE id = ?)", id)
 		if existsErr := row.Scan(&exists); existsErr != nil {
 			fmt.Println(existsErr)
 		}

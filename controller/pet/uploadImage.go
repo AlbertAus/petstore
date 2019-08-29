@@ -18,7 +18,7 @@ import (
 
 // UploadImage handling the post method to upload a pet's Image by petID.
 func UploadImage(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("********// Entering the controller PetUploadImageFunction(w,r) *********")
+	fmt.Println("******** Entering the controller PetUploadImageFunction(w,r) *********")
 
 	// Parse our multipart form, 10 << 20 specifies a maximum
 	// upload of 10 MB files.

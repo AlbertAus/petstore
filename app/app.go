@@ -1,6 +1,7 @@
 package app
 
 import (
+	pet "github.com/AlbertAus/petstore/controller/pet"
 	"github.com/gorilla/mux"
 )
 
@@ -12,41 +13,32 @@ type App struct {
 // SetupRouter Setup Routers for the APIs.
 // Redirect all the requests to different Params HandlerFunc.
 func (app *App) SetupRouter() {
-	// Handler one param Methods
+
+	// Handle pet router
 	app.Router.
 		Methods("POST").
-		Path("/{param1}").
-		HandlerFunc(app.oneParamsHandlerFunc)
+		Path("/pet").HandlerFunc(pet.Post)
 
 	app.Router.
 		Methods("PUT").
-		Path("/{param1}").
-		HandlerFunc(app.oneParamsHandlerFunc)
+		Path("/pet").HandlerFunc(pet.Put)
 
-	// Handler two params  Method
 	app.Router.
 		Methods("GET").
-		Path("/{param1}/{param2}").
-		HandlerFunc(app.twoParamsHandlerFunc)
+		Path("/pet/{param2}").HandlerFunc(pet.Get)
 
 	app.Router.
 		Methods("POST").
-		Path("/{param1}/{param2}").
-		HandlerFunc(app.twoParamsHandlerFunc)
+		Path("/pet/{param2}").HandlerFunc(pet.PostUpdate)
 
 	app.Router.
 		Methods("DELETE").
-		Path("/{param1}/{param2}").
-		HandlerFunc(app.twoParamsHandlerFunc)
-
-	// Handler three params  Method
-	app.Router.
-		Methods("GET").
-		Path("/{param1}/{param2}/{param3}").
-		HandlerFunc(app.threeParamsHandlerFunc)
+		Path("/pet/{param2}").
+		HandlerFunc(pet.Delete)
 
 	app.Router.
 		Methods("POST").
-		Path("/{param1}/{param2}/{param3}").
-		HandlerFunc(app.threeParamsHandlerFunc)
+		Path("/pet/{param2}/uploadImage").
+		HandlerFunc(pet.UploadImage)
+
 }
