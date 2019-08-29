@@ -1,0 +1,9 @@
+FROM golang:1.12.7 as builder
+WORKDIR $GOPATH/src/github.com/AlbertAus/petstore
+COPY ./ .
+RUN GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -v
+RUN cp petstore /
+
+FROM mcr.microsoft.com/windows:1903
+COPY --from=builder /petstore /
+CMD ["/petstore"]
